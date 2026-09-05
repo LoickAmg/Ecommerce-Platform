@@ -1,0 +1,18 @@
+# Non testé dans le bac à sable de développement (Docker Hub y est
+# bloqué) — à vérifier avec `docker compose up --build` sur votre machine.
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: "3000"
+      DATABASE_URL: /data/dev.db
+      SESSION_SECRET: change-me-in-production
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:?définissez une clé de TEST sk_test_... dans .env}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:?définissez whsec_... dans .env}
+    volumes:
+      - db-data:/data
+
+volumes:
+  db-data:
