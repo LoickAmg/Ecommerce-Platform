@@ -5,6 +5,7 @@ function mapOrderRow(row: Record<string, unknown>): OrderRecord {
   return {
     id: row.id as number,
     userId: (row.user_id as number | null) ?? null,
+    sessionId: row.session_id as string,
     status: row.status as OrderStatus,
     totalCents: row.total_cents as number,
     currency: row.currency as string,
@@ -46,11 +47,13 @@ export function getOrderItems(db: DatabaseSync, orderId: number): OrderItemRecor
 
 export function insertOrder(
   db: DatabaseSync,
-  input: { userId: number | null; totalCents: number; currency: string }
+  input: { userId: number | null; sessionId: string; totalCents: number; currency: string }
 ): OrderRecord {
   const result = db
-    .prepare("INSERT INTO orders (user_id, total_cents, currency) VALUES (?, ?, ?)")
-    .run(input.userId, input.totalCents, input.currency);
+    .prepare(
+      "INSERT INTO orders (user_id, session_id, total_cents, currency) VALUES (?, ?, ?, ?)"
+    )
+    .run(input.userId, input.sessionId, input.totalCents, input.currency);
   const created = getOrderById(db, Number(result.lastInsertRowid));
   if (!created) throw new Error("échec de création de la commande (introuvable après insertion)");
   return created;

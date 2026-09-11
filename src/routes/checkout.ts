@@ -21,7 +21,11 @@ export function createCheckoutRouter(deps: AppDeps, baseUrl: string): Router {
   );
 
   router.get("/orders/:id", (req, res) => {
-    res.json(getOrder(deps.db, Number(req.params.id)));
+    const order = getOrder(deps.db, Number(req.params.id), {
+      userId: req.userId,
+      sessionId: req.sessionId,
+    });
+    res.json(order);
   });
 
   return router;

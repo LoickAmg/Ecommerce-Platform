@@ -71,7 +71,7 @@ export function createOrderFromCart(
       });
     }
 
-    const order = insertOrder(db, { userId, totalCents, currency: "eur" });
+    const order = insertOrder(db, { userId, sessionId, totalCents, currency: "eur" });
     for (const input of orderItemsInput) {
       insertOrderItem(db, { orderId: order.id, ...input });
     }
@@ -85,9 +85,31 @@ export function createOrderFromCart(
   }
 }
 
-export function getOrder(db: DatabaseSync, orderId: number): OrderView {
+/**
+ * `requester` identifie qui appelle (session + éventuel utilisateur connecté
+ * via le middleware de session, voir `app.ts`). Une commande liée à un
+ * compte (`order.userId !== null`) n'est visible qu'à ce compte ; une
+ * commande invité (`order.userId === null`) n'est visible qu'à la session
+ * qui l'a créée — jamais par simple connaissance de l'id numérique
+ * (protection contre l'IDOR : incrémenter `orderId` dans l'URL ne doit
+ * jamais exposer la commande d'un tiers). On renvoie `OrderNotFoundError`
+ * plutôt qu'un 403 pour ne pas confirmer à un attaquant qu'un id existe.
+ */
+export function getOrder(
+  db: DatabaseSync,
+  orderId: number,
+  requester: { userId: number | null; sessionId: string }
+): OrderView {
+  if (!Number.isInteger(orderId)) throw new OrderNotFoundError(orderId);
   const order = getOrderById(db, orderId);
   if (!order) throw new OrderNotFoundError(orderId);
+
+  const owns =
+    order.userId !== null
+      ? order.userId === requester.userId
+      : order.sessionId === requester.sessionId;
+  if (!owns) throw new OrderNotFoundError(orderId);
+
   return toView(db, order);
 }
 

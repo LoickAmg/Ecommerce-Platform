@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS cart_items (
 CREATE TABLE IF NOT EXISTS orders (
   id                INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id           INTEGER REFERENCES users(id),
+  session_id        TEXT NOT NULL REFERENCES sessions(id),
   status            TEXT NOT NULL DEFAULT 'PENDING'
                        CHECK (status IN ('PENDING', 'PAID', 'CANCELED', 'EXPIRED')),
   total_cents       INTEGER NOT NULL CHECK (total_cents >= 0),

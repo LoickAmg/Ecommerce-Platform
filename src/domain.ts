@@ -47,6 +47,7 @@ export type OrderStatus = "PENDING" | "PAID" | "CANCELED" | "EXPIRED";
 export interface OrderRecord {
   id: number;
   userId: number | null;
+  sessionId: string;
   status: OrderStatus;
   totalCents: number;
   currency: string;
